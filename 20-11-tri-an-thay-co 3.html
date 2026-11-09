@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tri Ân Thầy Cô 20/11 - Tập thể group 1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --ink: #1e2a5e; --gold: #d9a441; --pink: #d4577a; }
+        body { background-color: #fff7ec; color: var(--ink); font-family: 'Quicksand', sans-serif; overflow-x: hidden; margin: 0; cursor: crosshair; }
+        .font-tet { font-family: 'Dancing Script', cursive; }
+        .font-tet.underline { text-decoration-skip-ink: none; text-underline-offset: 0.2em; text-decoration-thickness: 2px; }
+        .chalk { text-shadow: 2px 2px 0 rgba(255,255,255,0.9); }
+
+        #blossom-container, #click-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99; }
+        #click-canvas { z-index: 10001; }
+
+        #welcome-screen {
+            position: fixed; inset: 0; z-index: 9999;
+            background: radial-gradient(circle at 25% 20%, #fde1ea 0%, transparent 55%), radial-gradient(circle at 78% 82%, #d3e9fa 0%, transparent 55%), #ebe2fb;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 1s ease-out;
+        }
+
+        .scroll-wrapper { perspective: 1000px; display: flex; justify-content: center; align-items: center; min-height: 200px; cursor: pointer; padding: 20px; }
+        .royal-scroll {
+            width: 100%; max-width: 900px; height: 110px; background: #fdf5e6;
+            background-image: radial-gradient(#fdf5e6 60%, #f3e5ab 100%);
+            position: relative; transition: all 1.5s cubic-bezier(0.645, 0.045, 0.355, 1);
+            overflow: hidden; border-radius: 5px; box-shadow: 0 10px 40px rgba(30,42,94,0.3);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .royal-scroll.is-open { height: auto; min-height: 500px; padding: 60px 40px; }
+        .roller {
+            position: absolute; width: 105%; height: 45px;
+            background: linear-gradient(to bottom, #6d3a12, #8b4513, #6d3a12);
+            left: -2.5%; z-index: 20; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            transition: transform 1.5s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+        .roller-top { top: 0; } .roller-bottom { bottom: 0; }
+        .is-open .roller-top { transform: translateY(-15px); }
+        .is-open .roller-bottom { transform: translateY(15px); }
+        .scroll-content { opacity: 0; transition: opacity 1s; transition-delay: 0.8s; width: 100%; }
+        .is-open .scroll-content { opacity: 1; }
+
+        .student-card { background: linear-gradient(#fff, #fffafc) padding-box, linear-gradient(135deg, var(--c1), var(--c2)) border-box; border: 3px solid transparent; transition: all 0.4s; cursor: pointer; }
+        .student-card:hover { transform: translateY(-15px) rotate(-3deg); box-shadow: 0 16px 32px -10px var(--c2); }
+        #modal { display: none; position: fixed; inset: 0; background: rgba(30,42,94,0.55); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(10px); padding: 20px; }
+        .timer-box { background: rgba(255,255,255,0.65); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 8px 24px -8px rgba(30,42,94,0.25); padding: 8px; border-radius: 10px; min-width: 65px; }
+        .achieve-card { background: rgba(255, 217, 102, 0.1); border: 1px solid rgba(255, 217, 102, 0.3); border-radius: 12px; }
+        .medal-badge { background: linear-gradient(to right, #ffd966, #e0b43a); color: #5a3b00; padding: 2px 10px; border-radius: 20px; font-weight: bold; font-size: 0.75rem; margin-bottom: 5px; display: inline-block; }
+        .personal-tag { background: rgba(255, 255, 255, 0.8); border: 1px solid var(--c2, #d4577a); color: #1e2a5e; padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+        .cute-message-box { background: rgba(255, 255, 255, 0.7); border: 2px dashed var(--c2, #d9a441); border-radius: 25px; position: relative; padding: 1.5rem; margin-top: 2rem; }
+        .cute-message-box::before { content: "🌼"; position: absolute; top: -15px; left: 10px; font-size: 1.5rem; }
+        .cute-message-box::after { content: "🌼"; position: absolute; bottom: -15px; right: 10px; font-size: 1.5rem; }
+        body::before { content: ''; position: fixed; top: 0; left: 0; width: 300%; height: 100%; z-index: -1; background: linear-gradient(100deg, #fde7ee, #ece3fb, #d9edfa, #e1f5ee, #fff3dc, #fde7ee); will-change: transform; animation: aurora 24s ease-in-out infinite; }
+        @keyframes aurora { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(-66.667%, 0, 0); } }
+        @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .grad-text { display: inline-block; background: linear-gradient(90deg, #1e2a5e, #7b3f8c, #d4577a, #d9a441, #d4577a, #7b3f8c, #1e2a5e); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; animation: shimmer 10s ease-in-out infinite; }
+        h1.grad-text, h2.grad-text, h3.grad-text { line-height: 1.35; padding: 0.1em 0.15em; }
+        .btn-grad { background: linear-gradient(90deg, #c9477a, #8a4fc0, #3f5fc4, #8a4fc0, #c9477a); background-size: 300% 100%; animation: shimmer 8s ease-in-out infinite; }
+        @keyframes glow { 0%, 100% { box-shadow: 0 10px 26px -8px rgba(201,71,122,0.45); } 50% { box-shadow: 0 12px 42px -4px rgba(138,79,192,0.8); } }
+        .btn-pulse { animation: shimmer 8s ease-in-out infinite, glow 2.6s ease-in-out infinite; }
+        .avatar-bg { background: linear-gradient(135deg, var(--c1), var(--c2)); }
+        .modal-box { background: linear-gradient(#fffaf5, #fffaf5) padding-box, linear-gradient(135deg, #f6b3a8, #b8a7f0, #8fd0f5) border-box; border: 4px solid transparent; }
+        @media (prefers-reduced-motion: reduce) { body::before, .grad-text, .btn-grad, .btn-pulse, #tree-sway { animation: none; } }
+        #tree-sway { transform-origin: 120px 238px; animation: sway 7s ease-in-out infinite; }
+        @keyframes sway { 0%, 100% { transform: rotate(-1.2deg); } 50% { transform: rotate(1.2deg); } }
+    </style>
+</head>
+<body>
+
+    <canvas id="click-canvas"></canvas>
+
+    <div id="welcome-screen">
+        <div class="text-center z-10">
+            <h2 class="text-5xl md:text-7xl font-tet grad-text mb-10 animate-pulse">Tri Ân Thầy Cô</h2>
+            <button onclick="startEverything()" class="btn-grad border-4 border-white text-white p-10 rounded-full shadow-[0_10px_50px_rgba(176,69,124,0.45)] transform transition hover:scale-110 active:scale-95">
+                <span class="text-6xl block mb-2">💐</span>
+                <span class="font-bold uppercase tracking-widest text-xl">Mở Thiệp</span>
+            </button>
+            <p class="mt-8 text-[#1e2a5e]/60 italic">Nhấn vào bất cứ đâu để thấy điều kỳ diệu!</p>
+        </div>
+    </div>
+
+    <canvas id="blossom-container"></canvas>
+    <audio id="main-music" loop><source src="nhac.mp3" type="audio/mpeg"></audio>
+
+    <header class="min-h-screen flex flex-col items-center justify-center text-center px-4 pt-24 pb-8 relative">
+        <div class="mb-10 z-10">
+            <p id="count-label" class="text-[#1e2a5e] font-bold uppercase tracking-widest mb-4">Đếm ngược đến ngày Nhà giáo Việt Nam 20/11</p>
+            <div id="countdown" class="flex gap-4 justify-center text-[#1e2a5e] mb-4">
+                <div class="timer-box"><span id="days" class="text-3xl font-bold block">00</span>Ngày</div>
+                <div class="timer-box"><span id="hours" class="text-3xl font-bold block">00</span>Giờ</div>
+                <div class="timer-box"><span id="minutes" class="text-3xl font-bold block">00</span>Phút</div>
+                <div class="timer-box text-[#b0457c]"><span id="seconds" class="text-3xl font-bold block">00</span>Giây</div>
+            </div>
+            <div class="mb-8">
+                <svg id="gratitude-tree" viewBox="0 0 240 260" class="mx-auto w-56 md:w-72 h-auto" role="img" aria-label="Cây tri ân lớn dần đến ngày 20/11">
+                    <defs>
+                        <radialGradient id="soil" cx="50%" cy="40%" r="70%"><stop offset="0%" stop-color="#d9b48a"/><stop offset="100%" stop-color="#a77c55"/></radialGradient>
+                        <linearGradient id="bark" gradientUnits="userSpaceOnUse" x1="70" y1="0" x2="170" y2="0"><stop offset="0" stop-color="#bd8f66"/><stop offset="0.5" stop-color="#8f6342"/><stop offset="1" stop-color="#6b4630"/></linearGradient>
+                    </defs>
+                    <ellipse cx="120" cy="240" rx="80" ry="13" fill="url(#soil)"/>
+                    <path d="M84 241 q-1-9-6-14 M89 241 q0-8-2-15 M94 241 q2-7 0-12 M146 241 q-2-7 0-12 M151 241 q0-8 3-15 M156 241 q1-9 6-14" stroke="#6fcf9f" stroke-width="2" stroke-linecap="round" fill="none"/>
+                    <ellipse id="tree-seed" cx="120" cy="235" rx="5" ry="3.5" fill="#7a4e2d"/>
+                    <g id="tree-scale"><g id="tree-sway"></g></g>
+                </svg>
+                <p id="tree-caption" class="text-sm md:text-base font-bold text-[#1e2a5e]/80 mt-1"></p>
+            </div>
+            <button onclick="giveWish()" class="btn-grad text-white font-bold py-4 px-12 rounded-full shadow-2xl transform transition active:scale-95 btn-pulse">
+                💌 GỬI LỜI TRI ÂN
+            </button>
+        </div>
+        <div class="z-10">
+            <div class="text-4xl mb-4">📚 ✏️ 🍎 🌻 📐</div>
+            <p class="text-3xl md:text-5xl font-tet text-[#b0457c] chalk mb-2">Chúc Mừng Ngày</p>
+            <h1 class="text-5xl md:text-8xl font-tet grad-text mb-4">Nhà Giáo Việt Nam</h1>
+            <p class="text-2xl md:text-3xl tracking-[10px] uppercase font-bold text-[#1e2a5e]">20/11 - Tri Ân Thầy Cô</p>
+        </div>
+    </header>
+
+    <section class="py-24 px-8 bg-white/40">
+        <div class="max-w-5xl mx-auto scroll-wrapper" onclick="toggleScroll()">
+            <div class="royal-scroll" id="main-scroll">
+                <div class="roller roller-top"></div>
+
+                <div class="scroll-content p-6">
+                    <div class="flex flex-col md:flex-row gap-12 items-center">
+                        <div class="md:w-1/2">
+                            <img src="anhto.jpg" class="rounded-lg shadow-2xl border-8 border-white w-full" alt="Team">
+                        </div>
+                        <div class="md:w-1/2 text-center md:text-left">
+                            <h2 class="text-5xl md:text-6xl font-tet text-[#8a3b8f] mb-4 underline decoration-[#d9a441]">Tập thể group 1</h2>
+                            <p class="text-sm text-[#1e2a5e]/80 italic mb-6">"Thank you for lighting our way, one lesson at a time. Happy Teachers’ Day 20/11!"</p>
+                            <p class="text-2xl text-[#1e2a5e] leading-relaxed font-serif italic mb-6">
+                                "Một chữ cũng là thầy, <br> nửa chữ cũng là thầy."
+                            </p>
+                            <div class="h-1 w-24 rounded-full bg-gradient-to-r from-[#d4577a] to-[#d9a441] mx-auto mb-6"></div>
+                            <p class="text-lg text-gray-800 leading-relaxed font-medium">
+                                Gửi thầy cô kính yêu: cảm ơn thầy cô đã dạy chúng em kiến thức và cả cách làm người. Chúc thầy cô ngày 20/11 thật nhiều hoa, thật nhiều quà và thật nhiều nụ cười!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="roller roller-bottom"></div>
+                <div id="scroll-hint" class="absolute inset-0 flex items-center justify-center z-30 transition-opacity">
+                    <span class="btn-grad text-white px-8 py-3 rounded-full font-bold shadow-xl border border-white">MỞ THƯ TRI ÂN 💌</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 px-6 max-w-7xl mx-auto">
+        <h2 class="text-5xl font-tet text-center text-[#8a3b8f] chalk mb-16 underline decoration-[#d9a441]">Những Người Lái Đò</h2>
+        <p id="board-sub" class="text-center text-[#1e2a5e]/70 -mt-10 mb-6"></p>
+        <div class="text-center mb-10">
+            <button onclick="giveWish()" class="btn-grad text-white font-bold py-3 px-10 rounded-full shadow-xl active:scale-95 transition">💌 Gửi lời chúc</button>
+        </div>
+        <div id="member-grid" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+    </section>
+
+    <footer class="py-16 px-6 text-center border-t border-white/80 bg-white/50">
+        <div class="max-w-3xl mx-auto">
+            <h3 class="text-4xl md:text-5xl font-tet grad-text mb-6">Lời Tri Ân</h3>
+            <p class="text-lg text-[#1e2a5e] leading-relaxed mb-8 italic">Cảm ơn thầy cô đã luôn dìu dắt, bao dung và tin tưởng tập thể group 1. Chúc thầy cô luôn mạnh khỏe, hạnh phúc và thật nhiều niềm vui trên chuyến đò tri thức!</p>
+            <div class="flex justify-center items-center gap-4 text-2xl">
+                <span>🍎</span> <span class="text-sm uppercase tracking-[4px] font-bold text-[#b0457c]">Happy Teachers' Day 20/11</span> <span>🍎</span>
+            </div>
+        </div>
+    </footer>
+
+    <div id="modal" onclick="closeModal()">
+        <div class="modal-box p-6 md:p-10 rounded-[2.5rem] max-w-4xl w-full m-4 relative overflow-y-auto max-h-[90vh]" onclick="event.stopPropagation()">
+            <button class="absolute top-4 right-6 text-4xl text-[#b0457c]" onclick="closeModal()">&times;</button>
+            <div id="modal-content" class="text-[#1e2a5e]"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFETTI KHI CLICK ---
+        const clickCanvas = document.getElementById('click-canvas');
+        const clickCtx = clickCanvas.getContext('2d');
+        let clickParticles = [];
+        const chalkColors = ['#e58fa6', '#8f7be0', '#5aa9e6', '#d9a441', '#4fb8a6', '#f08a7e'];
+
+        function resizeClickCanvas() {
+            clickCanvas.width = window.innerWidth;
+            clickCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeClickCanvas);
+        resizeClickCanvas();
+
+        class ClickParticle {
+            constructor(x, y) {
+                this.x = x; this.y = y;
+                this.size = Math.random() * 3 + 1.5;
+                this.speedX = (Math.random() - 0.5) * 8;
+                this.speedY = (Math.random() - 0.5) * 8 - 2;
+                this.color = chalkColors[Math.floor(Math.random() * chalkColors.length)];
+                this.opacity = 1;
+            }
+            update() {
+                this.speedY += 0.2; // bụi phấn rơi xuống
+                this.x += this.speedX; this.y += this.speedY;
+                this.opacity -= 0.02;
+            }
+            draw() {
+                clickCtx.globalAlpha = Math.max(0, this.opacity);
+                clickCtx.fillStyle = this.color;
+                clickCtx.beginPath();
+                clickCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                clickCtx.fill();
+            }
+        }
+
+        window.addEventListener('mousedown', (e) => {
+            for (let i = 0; i < 18; i++) clickParticles.push(new ClickParticle(e.clientX, e.clientY));
+        });
+
+        function handleClickParticles() {
+            clickCtx.clearRect(0, 0, clickCanvas.width, clickCanvas.height);
+            for (let i = 0; i < clickParticles.length; i++) {
+                clickParticles[i].update();
+                clickParticles[i].draw();
+                if (clickParticles[i].opacity <= 0) { clickParticles.splice(i, 1); i--; }
+            }
+            requestAnimationFrame(handleClickParticles);
+        }
+        handleClickParticles();
+
+        // --- CÁC HÀM CHÍNH ---
+        function startEverything() {
+            document.getElementById('main-music').play().catch(e => e);
+            setTimeout(() => { treeGo = true; }, 600);
+            document.getElementById('welcome-screen').style.opacity = '0';
+            setTimeout(() => { document.getElementById('welcome-screen').style.display = 'none'; }, 1000);
+        }
+
+        function toggleScroll() {
+            const scroll = document.getElementById('main-scroll');
+            scroll.classList.toggle('is-open');
+            document.getElementById('scroll-hint').style.opacity = scroll.classList.contains('is-open') ? '0' : '1';
+        }
+
+        // DỮ LIỆU 12 THẦY CÔ LỚP group 1 (theo TKB số 05, 02-07/11/2026)
+        // Muốn thêm ảnh: điền tên file vào "image", ví dụ image: "ninh.jpg"
+        const members = [
+            { name: "Ninh", subject: "Toán", icon: "📐", image: "", gvcn: true, quote: "Cảm ơn thầy/cô đã kiên nhẫn dẫn dắt cả lớp, trong giờ Toán lẫn ngoài giờ học." },
+            { name: "Phương", subject: "Ngữ văn", icon: "📖", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã dạy chúng em biết yêu từng con chữ và dám nói điều mình nghĩ." },
+            { name: "Son", subject: "Tiếng Anh", icon: "🌍", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã mở cho chúng em cánh cửa nhìn ra thế giới bằng một ngôn ngữ mới." },
+            { name: "Yến L", subject: "Vật lí", icon: "⚛️", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã giúp chúng em hiểu thế giới quanh mình vận hành ra sao, từng chút một." },
+            { name: "Thịnh", subject: "Hóa học", icon: "🧪", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã cho chúng em thấy mỗi phản ứng đều có nguyên nhân, mỗi nỗ lực đều có kết quả." },
+            { name: "Oanh", subject: "Sinh học", icon: "🌱", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã dạy chúng em trân trọng sự sống và những điều nhỏ bé quanh mình." },
+            { name: "Huyền", subject: "Lịch sử", icon: "🏛️", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã giúp chúng em hiểu quá khứ để biết ơn hiện tại và vững bước tới tương lai." },
+            { name: "Thái", subject: "Tin học", icon: "💻", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã dạy chúng em tư duy logic và cách làm chủ công nghệ." },
+            { name: "Công", subject: "Giáo dục thể chất (GDTC)", icon: "⚽", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã giúp chúng em khỏe người, khỏe tinh thần sau những giờ học căng thẳng." },
+            { name: "Chung", subject: "Quốc phòng - An ninh (QPAN)", icon: "🎖️", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã dạy chúng em tinh thần kỷ luật và lòng yêu Tổ quốc." },
+            { name: "Thái", subject: "HĐ trải nghiệm, hướng nghiệp (HĐTN)", icon: "🧭", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã giúp chúng em hiểu mình hơn và chọn được hướng đi cho tương lai." },
+            { name: "Thanh", subject: "Giáo dục địa phương (GDĐP)", icon: "🏞️", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã giúp chúng em thêm yêu và tự hào về quê hương Ninh Bình." }
+        ];
+
+        // ===== BẢNG LỜI CHÚC =====
+        // Có sẵn 12 thầy/cô ở trên; ai gửi lời chúc cho một tên mới thì tên đó tự thêm vào bảng.
+        // Dán URL Web App của Google Apps Script sau khi triển khai.
+        const WISH_API_URL = 'https://script.google.com/macros/s/AKfycbwC1eSzjGf1YMb-vuKqzsU07P85IUvJlkNOuimJDBULenAJdz91DnZ1dp05HFoOImRy8A/exec';
+        // Giữ bản lưu cục bộ để lời chúc mới vẫn hiện ngay trên trình duyệt gửi.
+        const BOARD_KEY = 'wishboard-group1-v1';
+        const SENDER_KEY = 'wishboard-group1-sender';
+        const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const clean = s => String(s || '').trim().replace(/\s+/g, ' ');
+        const rKey = (name, subject) => (clean(name) + '|' + clean(subject)).toLowerCase();
+        const loadWishes = () => { try { const d = JSON.parse(localStorage.getItem(BOARD_KEY) || '[]'); return Array.isArray(d) ? d : []; } catch (e) { return []; } };
+        const saveWishes = d => { try { localStorage.setItem(BOARD_KEY, JSON.stringify(d)); return true; } catch (e) { return false; } };
+        function submitWishToServer(wish) {
+            if (!WISH_API_URL) return Promise.reject(new Error('Chưa cấu hình URL Google Apps Script trong trang web.'));
+            return new Promise((resolve, reject) => {
+                const requestId = 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2);
+                const callbackName = 'wishboardCallback_' + requestId;
+                const script = document.createElement('script');
+                let timeout;
+                const finish = (error) => {
+                    window.clearTimeout(timeout);
+                    delete window[callbackName];
+                    script.remove();
+                    if (error) reject(error); else resolve();
+                };
+                window[callbackName] = data => {
+                    if (!data || data.requestId !== requestId) return;
+                    if (data.ok) finish();
+                    else finish(new Error(data.message || 'Máy chủ không lưu được lời chúc.'));
+                };
+                const params = new URLSearchParams({
+                    action: 'saveWish', callback: callbackName, requestId,
+                    id: wish.id, to: wish.to, subject: wish.subject || '',
+                    from: wish.from || '', text: wish.text, website: ''
+                });
+                script.onerror = () => finish(new Error('Không kết nối được máy chủ. Hãy kiểm tra URL triển khai Apps Script và thử lại.'));
+                script.onload = () => {
+                    if (window[callbackName]) finish(new Error('Máy chủ không trả về xác nhận hợp lệ.'));
+                };
+                timeout = window.setTimeout(() => finish(new Error('Không nhận được xác nhận từ máy chủ. Hãy thử gửi lại sau.')), 30000);
+                script.src = WISH_API_URL + (WISH_API_URL.includes('?') ? '&' : '?') + params.toString();
+                document.head.appendChild(script);
+            });
+        }
+
+        const avatar = (m, box, ico) => m.image
+            ? `<img src="${esc(m.image)}" class="${box} object-cover" alt="${esc(m.name)}">`
+            : `<div class="${box} flex items-center justify-center avatar-bg ${ico}">${m.icon}</div>`;
+
+        const palettes = [['#f6b3a8','#e58fa6'],['#b8a7f0','#8f7be0'],['#8fd0f5','#5aa9e6'],['#8fe0c8','#4fb8a6'],['#f4d58d','#d9a441'],['#ffc09f','#f08a7e']];
+        const palStyle = i => { const c = palettes[i % palettes.length]; return `--c1:${c[0]};--c2:${c[1]}`; };
+        const fieldCls = 'w-full rounded-xl border-2 border-[#b8a7f0] bg-white/90 px-4 py-3 text-base text-[#1e2a5e] focus:outline-none focus:border-[#d4577a]';
+
+        let recipients = [];
+        function buildRecipients() {
+            const map = new Map();
+            members.forEach(m => {
+                const k = rKey(m.name, m.subject);
+                map.set(k, { key: k, name: m.name, subject: m.subject, icon: m.icon, image: m.image, gvcn: m.gvcn, wishes: [{ id: null, from: 'Tập thể group 1', text: m.quote }] });
+            });
+            loadWishes().forEach(w => {
+                const k = rKey(w.to, w.subject);
+                if (!map.has(k)) map.set(k, { key: k, name: w.to, subject: w.subject || '', icon: '🎓', image: '', gvcn: false, wishes: [] });
+                map.get(k).wishes.push(w);
+            });
+            recipients = [...map.values()];
+        }
+
+        function renderBoard() {
+            buildRecipients();
+            const grid = document.getElementById('member-grid');
+            grid.innerHTML = '';
+            recipients.forEach((r, i) => {
+                const card = document.createElement('div');
+                card.className = 'student-card p-6 rounded-2xl flex flex-col items-center text-center';
+                card.style.cssText = palStyle(i);
+                card.innerHTML = `${avatar(r, 'w-24 h-24 rounded-full border-4 border-white shadow-md mb-4', 'text-5xl')}<h3 class="font-bold text-[#1e2a5e] text-lg">${esc(r.name)}</h3>${r.subject ? `<p class="text-[#b0457c] text-xs mb-1">${esc(r.subject)}</p>` : ''}${r.gvcn ? '<span class="medal-badge mt-1">GVCN group 1</span>' : ''}<span class="text-xs font-bold text-[#1e2a5e]/70 mt-2">💌 ${r.wishes.length} lời chúc</span>`;
+                card.onclick = () => openModal(i);
+                grid.appendChild(card);
+            });
+            const total = recipients.reduce((n, r) => n + r.wishes.length, 0);
+            document.getElementById('board-sub').textContent = `${recipients.length} thầy cô · ${total} lời chúc`;
+        }
+
+        // Xem tất cả lời chúc dành cho một thầy/cô
+        function openModal(i) {
+            const r = recipients[i];
+            if (!r) return;
+            const list = r.wishes.map(w => `
+                <div class="cute-message-box text-left">
+                    <p class="text-sm italic text-[#1e2a5e] leading-relaxed font-bold whitespace-pre-line">"${esc(w.text)}"</p>
+                    <p class="text-xs text-[#1e2a5e]/70 mt-3 text-right">— ${esc(w.from || 'Ẩn danh')}${w.id && !w.serverSaved ? ` <button data-id="${esc(w.id)}" onclick="deleteWish(this.dataset.id)" class="ml-2 text-[#c9477a] underline">xóa</button>` : ''}</p>
+                </div>`).join('');
+            document.getElementById('modal-content').innerHTML = `
+                <div class="max-w-md mx-auto" style="${palStyle(i)}">
+                    <div class="text-center">
+                        ${avatar(r, 'w-40 h-40 rounded-3xl mx-auto border-4 border-white shadow-xl', 'text-7xl')}
+                        <h2 class="text-5xl font-tet grad-text mb-3 mt-5">${esc(r.name)}</h2>
+                        <div class="flex flex-wrap justify-center gap-2">
+                            ${r.subject ? `<span class="personal-tag">Môn: ${esc(r.subject)}</span>` : ''}
+                            ${r.gvcn ? '<span class="personal-tag">Giáo viên chủ nhiệm group 1</span>' : ''}
+                        </div>
+                        <div class="mb-8">${list}</div>
+                        <button onclick="giveWish(${i})" class="btn-grad text-white px-6 py-2 rounded-full font-bold shadow-lg active:scale-95 transition">✏️ Viết lời chúc cho ${esc(r.name)}</button>
+                    </div>
+                </div>`;
+            document.getElementById('modal').style.display = 'flex';
+        }
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+        // Form gửi lời chúc: sel = số thứ tự thầy/cô để chọn sẵn, hoặc bỏ trống
+        function giveWish(sel) {
+            buildRecipients();
+            let sender = '';
+            try { sender = localStorage.getItem(SENDER_KEY) || ''; } catch (e) {}
+            const opts = recipients.map((r, i) => `<option value="${i}" ${sel === i ? 'selected' : ''}>${esc(r.name)}${r.subject ? ' – ' + esc(r.subject) : ''}</option>`).join('');
+            document.getElementById('modal-content').innerHTML = `
+                <div class="max-w-lg mx-auto text-left">
+                    <h2 class="text-4xl md:text-5xl font-tet grad-text mb-6 text-center">Gửi Lời Chúc</h2>
+                    <label class="block text-sm font-bold mb-1" for="wish-to">Gửi đến</label>
+                    <select id="wish-to" onchange="onWishTo()" class="${fieldCls}">
+                        <option value="" ${sel == null ? 'selected' : ''}>— Chọn thầy/cô —</option>
+                        ${opts}
+                        <option value="new">➕ Thầy/cô khác (tự nhập tên)</option>
+                    </select>
+                    <div id="new-fields" class="hidden mt-3 space-y-3">
+                        <input id="wish-name" type="text" maxlength="40" placeholder="Tên thầy/cô" class="${fieldCls}">
+                        <input id="wish-subject" type="text" maxlength="40" placeholder="Môn dạy / chức vụ (không bắt buộc)" class="${fieldCls}">
+                    </div>
+                    <label class="block text-sm font-bold mt-5 mb-1" for="wish-from">Tên của bạn <span class="font-normal opacity-70">(không bắt buộc)</span></label>
+                    <input id="wish-from" type="text" maxlength="40" value="${esc(sender)}" placeholder="Ví dụ: Lan, học sinh cũ khóa 2023" class="${fieldCls}">
+                    <label class="block text-sm font-bold mt-5 mb-1" for="wish-text">Lời chúc</label>
+                    <textarea id="wish-text" rows="5" maxlength="400" placeholder="Viết lời chúc của bạn..." class="${fieldCls}"></textarea>
+                    <p id="wish-err" class="text-sm font-bold text-[#c9477a] mt-2 min-h-[1.25rem]"></p>
+                    <div class="text-center mt-4"><button id="wish-submit" onclick="sendWish()" class="btn-grad text-white px-10 py-3 rounded-full font-bold shadow-lg active:scale-95 transition">💌 Gửi lời chúc</button></div>
+                </div>`;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function onWishTo() {
+            const isNew = document.getElementById('wish-to').value === 'new';
+            document.getElementById('new-fields').classList.toggle('hidden', !isNew);
+            if (isNew) document.getElementById('wish-name').focus();
+        }
+
+        async function sendWish() {
+            const v = document.getElementById('wish-to').value;
+            const text = document.getElementById('wish-text').value.trim();
+            const from = clean(document.getElementById('wish-from').value);
+            const err = document.getElementById('wish-err');
+            const submitButton = document.getElementById('wish-submit');
+            let name, subject;
+            if (v === '') { err.textContent = 'Hãy chọn thầy/cô cần gửi lời chúc nhé.'; return; }
+            if (v === 'new') {
+                name = clean(document.getElementById('wish-name').value);
+                subject = clean(document.getElementById('wish-subject').value);
+                if (!name) { err.textContent = 'Hãy nhập tên thầy/cô.'; return; }
+                if (!subject) {
+                    const same = recipients.filter(r => r.name.toLowerCase() === name.toLowerCase());
+                    if (same.length === 1) { name = same[0].name; subject = same[0].subject; }
+                }
+            } else {
+                const r = recipients[+v];
+                name = r.name; subject = r.subject;
+            }
+            if (!text) { err.textContent = 'Hãy viết lời chúc của bạn nhé.'; return; }
+            const wish = { id: 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), to: name, subject, from, text, t: Date.now(), serverSaved: true };
+            submitButton.disabled = true;
+            err.textContent = 'Đang gửi lời chúc lên máy chủ...';
+            try {
+                await submitWishToServer(wish);
+            } catch (e) {
+                err.textContent = e.message;
+                submitButton.disabled = false;
+                return;
+            }
+            const all = loadWishes();
+            all.push(wish);
+            const cached = saveWishes(all);
+            try { localStorage.setItem(SENDER_KEY, from); } catch (e) {}
+            renderBoard();
+            const idx = recipients.findIndex(r => r.key === rKey(name, subject));
+            document.getElementById('modal-content').innerHTML = `
+                <div class="text-center py-6 max-w-lg mx-auto">
+                    <p class="text-sm uppercase tracking-[3px] font-bold text-[#b0457c] mb-2">Đã gửi đến</p>
+                    <h2 class="text-5xl font-tet grad-text mb-6">${esc(name)}</h2>
+                    <div class="cute-message-box"><p class="text-lg md:text-xl font-bold italic leading-relaxed whitespace-pre-line">"${esc(text)}"</p></div>
+                    <p class="mt-5 text-sm text-[#1e2a5e]/70">— ${esc(from || 'Ẩn danh')} —</p>
+                    ${cached ? '' : '<p class="mt-3 text-xs text-[#1e2a5e]/70">Lời chúc đã được lưu trên Google Sheets; trình duyệt này không lưu được bản xem trước.</p>'}
+                    <div class="mt-8 flex flex-wrap gap-3 justify-center">
+                        <button onclick="openModal(${idx})" class="px-6 py-2 rounded-full font-bold border-2 border-[#b8a7f0] text-[#1e2a5e]">📜 Xem lời chúc của ${esc(name)}</button>
+                        <button onclick="giveWish()" class="px-6 py-2 rounded-full font-bold border-2 border-[#b8a7f0] text-[#1e2a5e]">➕ Gửi thêm</button>
+                        <button onclick="closeModal()" class="btn-grad text-white px-6 py-2 rounded-full font-bold">Đóng</button>
+                    </div>
+                </div>`;
+        }
+
+        function deleteWish(id) {
+            if (!confirm('Xóa lời chúc này?')) return;
+            const all = loadWishes();
+            const w = all.find(x => x.id === id);
+            if (w && w.serverSaved) {
+                alert('Lời chúc đã lưu trên Google Sheets và không thể xóa từ trang này.');
+                return;
+            }
+            saveWishes(all.filter(x => x.id !== id));
+            renderBoard();
+            const idx = w ? recipients.findIndex(r => r.key === rKey(w.to, w.subject)) : -1;
+            if (idx >= 0) openModal(idx); else closeModal();
+        }
+
+        renderBoard();
+
+        // HOA & SÁCH VỞ RƠI (ít, vẽ bằng sprite, tính theo thời gian nên mượt) + COUNTDOWN
+        const blossomCanvas = document.getElementById('blossom-container'), bCtx = blossomCanvas.getContext('2d');
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        let bW = 0, bH = 0;
+        function bRes() {
+            bW = window.innerWidth; bH = window.innerHeight;
+            blossomCanvas.width = bW * dpr; blossomCanvas.height = bH * dpr;
+        }
+        window.addEventListener('resize', bRes); bRes();
+
+        const fallIcons = ['🌹', '🌼', '📚', '✏️', '🍎', '✨'];
+        const sprites = fallIcons.map(ch => {
+            const c = document.createElement('canvas'); c.width = c.height = 72;
+            const x = c.getContext('2d'); x.font = '56px serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+            x.fillText(ch, 36, 40);
+            return c;
+        });
+        class Blossom {
+            constructor(initial) { this.reset(initial); }
+            reset(initial) {
+                this.base = Math.random() * bW;
+                this.y = initial ? Math.random() * bH : -40;
+                this.img = sprites[Math.floor(Math.random() * sprites.length)];
+                this.s = Math.random() * 14 + 16;
+                this.sp = Math.random() * 0.7 + 0.45;
+                this.amp = Math.random() * 20 + 12;
+                this.ph = Math.random() * 6.283; this.ps = Math.random() * 0.012 + 0.008;
+                this.rot = Math.random() * 6.283; this.rs = (Math.random() - 0.5) * 0.015;
+                this.alpha = 0.8 + Math.random() * 0.2;
+            }
+            update(dt) { this.y += this.sp * dt; this.ph += this.ps * dt; this.rot += this.rs * dt; if (this.y > bH + 40) this.reset(false); }
+            draw() {
+                const x = this.base + Math.sin(this.ph) * this.amp, c = Math.cos(this.rot) * dpr, s = Math.sin(this.rot) * dpr;
+                bCtx.globalAlpha = this.alpha;
+                bCtx.setTransform(c, s, -s, c, x * dpr, this.y * dpr);
+                bCtx.drawImage(this.img, -this.s / 2, -this.s / 2, this.s, this.s);
+            }
+        }
+        const calmMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const blossomParts = Array.from({ length: calmMotion ? 0 : (window.innerWidth < 640 ? 9 : 15) }, () => new Blossom(true));
+        let lastT = 0;
+        function bAnim(t) {
+            const dt = lastT ? Math.min((t - lastT) / 16.667, 3) : 1; lastT = t;
+            bCtx.setTransform(1, 0, 0, 1, 0, 0);
+            bCtx.clearRect(0, 0, blossomCanvas.width, blossomCanvas.height);
+            blossomParts.forEach(p => { p.update(dt); p.draw(); });
+            requestAnimationFrame(bAnim);
+        }
+        requestAnimationFrame(bAnim);
+
+        // ===== CÂY TRI ÂN: nhỏ lớn dần trong 30 ngày, nở hoa đúng 20/11 =====
+        // Xem thử các giai đoạn: thêm ?cay=0.3 (0 → 1) vào đường dẫn của trang
+        const GROW_DAYS = 30;
+        const NS = 'http://www.w3.org/2000/svg';
+        const treeScale = document.getElementById('tree-scale');
+        const sway = document.getElementById('tree-sway');
+        const clamp01 = v => Math.min(1, Math.max(0, v));
+        const seg = (p, a, b) => clamp01((p - a) / (b - a));
+        const smooth = k => k * k * (3 - 2 * k);
+        let rs = 11; const rnd = () => (rs = (rs * 16807) % 2147483647) / 2147483647;
+        const mk = (tag, at, parent) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); parent.appendChild(e); return e; };
+        const branchLayer = mk('g', {}, sway), sproutLayer = mk('g', {}, sway), foliageLayer = mk('g', {}, sway), flowerLayer = mk('g', {}, sway);
+
+        // Cành cong (Bezier bậc 2), thon dần về ngọn
+        const ptAt = (b, u) => [(1-u)*(1-u)*b.P0.x + 2*(1-u)*u*b.C.x + u*u*b.P1.x, (1-u)*(1-u)*b.P0.y + 2*(1-u)*u*b.C.y + u*u*b.P1.y];
+        const dirAt = (b, u) => [2*(1-u)*(b.C.x-b.P0.x) + 2*u*(b.P1.x-b.C.x), 2*(1-u)*(b.C.y-b.P0.y) + 2*u*(b.P1.y-b.C.y)];
+        const widthAt = (b, u) => b.w0 + (b.w1 - b.w0) * u + b.flare * Math.max(0, 1 - u / 0.14);
+
+        const bs = [];
+        const DUR = [0.30, 0.20, 0.16, 0.13];
+        function addBranch(x, y, ang, len, w0, depth, ta) {
+            if (depth > 0) ang = Math.max(-Math.PI + 0.3, Math.min(-0.3, ang)); // cành luôn hướng lên
+            const tb = ta + DUR[depth];
+            const delta = -Math.PI / 2 - ang;
+            const end = depth === 0 ? ang + (rnd() - 0.5) * 0.25 : ang + delta * (0.25 + rnd() * 0.2); // ngọn cành uốn lên
+            const C = { x: x + Math.cos(ang) * len * 0.5, y: y + Math.sin(ang) * len * 0.5 };
+            const P1 = { x: C.x + Math.cos(end) * len * 0.5, y: C.y + Math.sin(end) * len * 0.5 };
+            const b = { P0: { x, y }, C, P1, w0, w1: Math.max(0.9, w0 * (depth === 0 ? 0.5 : 0.4)), flare: depth === 0 ? 7 : 0, ta, tb, depth, last: -1, el: mk('path', { fill: 'url(#bark)' }, branchLayer) };
+            bs.push(b);
+            if (depth < 3) {
+                [[0.42, 0.6, 0.78], [0.5, 0.78], [0.65]][depth].forEach((f, i) => {
+                    const [px, py] = ptAt(b, f), [dx, dy] = dirAt(b, f);
+                    addBranch(px, py, Math.atan2(dy, dx) + (i % 2 === 0 ? 1 : -1) * (0.5 + rnd() * 0.3), len * (0.62 + rnd() * 0.08), widthAt(b, f) * 0.72, depth + 1, ta + DUR[depth] * f);
+                });
+                const [lx, ly] = ptAt(b, 1), [ldx, ldy] = dirAt(b, 1);
+                addBranch(lx, ly, Math.atan2(ldy, ldx) + (rnd() - 0.5) * 0.35, len * 0.68, widthAt(b, 1) * 0.8, depth + 1, tb);
+            }
+        }
+        addBranch(120, 238, -Math.PI / 2 + 0.03, 80, 13, 0, 0);
+        const trunk = bs[0];
+
+        // Tán lá: các cụm lá xanh dày ở ngọn cành
+        const shades = ['#63bf93', '#56b088', '#74cca0', '#4da582'];
+        const blobs = bs.filter(b => b.depth >= 2).map(b => ({ x: b.P1.x, y: b.P1.y, r: (b.depth === 3 ? 14 : 11) + rnd() * 6, tb: b.tb, d3: b.depth === 3, last: -1 }));
+        blobs.sort((a, b) => a.y - b.y);
+        blobs.forEach(o => {
+            o.el = mk('g', {}, foliageLayer);
+            const c = shades[Math.floor(rnd() * shades.length)];
+            mk('circle', { r: o.r.toFixed(1), fill: c, 'fill-opacity': 0.95 }, o.el);
+            for (let i = 0; i < 6; i++) {
+                const a = (i / 6) * 6.283 + rnd() * 0.5;
+                mk('ellipse', { cx: (Math.cos(a) * o.r * 0.82).toFixed(1), cy: (Math.sin(a) * o.r * 0.82).toFixed(1), rx: 5.2, ry: 4.4, transform: `rotate(${Math.round(a * 57.3)} ${(Math.cos(a) * o.r * 0.82).toFixed(1)} ${(Math.sin(a) * o.r * 0.82).toFixed(1)})`, fill: shades[Math.floor(rnd() * shades.length)] }, o.el);
+            }
+            mk('circle', { cx: (-o.r * 0.25).toFixed(1), cy: (-o.r * 0.3).toFixed(1), r: (o.r * 0.5).toFixed(1), fill: '#c5f0d6', 'fill-opacity': 0.45 }, o.el);
+        });
+
+        // Hoa nở trên tán lá
+        const petalColors = ['#ffb3c7', '#ffd6e0', '#d9c7ff', '#ffe0a3'];
+        const flowers = [];
+        const d3blobs = blobs.filter(o => o.d3);
+        d3blobs.concat(d3blobs.slice(0, 6)).forEach((o, k) => {
+            const a = rnd() * 6.283, dist = o.r * (0.35 + rnd() * 0.35);
+            const g = mk('g', {}, flowerLayer);
+            for (let i = 0; i < 5; i++) { const q = i * 1.2566; mk('circle', { cx: (Math.cos(q) * 3).toFixed(2), cy: (Math.sin(q) * 3).toFixed(2), r: 2.6, fill: petalColors[k % petalColors.length] }, g); }
+            mk('circle', { r: 1.7, fill: '#f4d58d' }, g);
+            flowers.push({ x: o.x + Math.cos(a) * dist, y: o.y + Math.sin(a) * dist, th: Math.min(0.93, Math.max(0.84 + rnd() * 0.06, o.tb + 0.1)), el: g, last: -1 });
+        });
+
+        // Mầm lá nhỏ ở ngọn thân khi cây còn bé
+        const sprouts = [mk('ellipse', { rx: 6, ry: 3, fill: '#7fd4a8' }, sproutLayer), mk('ellipse', { rx: 6, ry: 3, fill: '#63bf93' }, sproutLayer)];
+
+        function branchD(b, t) {
+            const n = Math.max(3, Math.ceil((b.depth === 0 ? 16 : 9) * t));
+            const L = [], R = [];
+            for (let i = 0; i <= n; i++) {
+                const u = t * i / n, [x, y] = ptAt(b, u), [dx, dy] = dirAt(b, u), m = Math.hypot(dx, dy) || 1;
+                let w = widthAt(b, u);
+                if (t < 1) w *= 0.45 + 0.55 * clamp01((t - u) / 0.25);
+                const nx = -dy / m * w / 2, ny = dx / m * w / 2;
+                L.push((x + nx).toFixed(1) + ' ' + (y + ny).toFixed(1));
+                R.push((x - nx).toFixed(1) + ' ' + (y - ny).toFixed(1));
+            }
+            return 'M' + L.join('L') + 'L' + R.reverse().join('L') + 'Z';
+        }
+
+        function renderTree(p) {
+            treeScale.setAttribute('transform', `translate(120 238) scale(${(0.62 + 0.38 * p).toFixed(3)}) translate(-120 -238)`);
+            bs.forEach(b => {
+                const t = seg(p, b.ta, b.tb);
+                if (t === b.last) return; b.last = t;
+                if (t <= 0) { b.el.style.display = 'none'; return; }
+                b.el.style.display = ''; b.el.setAttribute('d', branchD(b, t));
+            });
+            blobs.forEach(o => {
+                const k = smooth(seg(p, o.tb, o.tb + 0.14));
+                if (k === o.last) return; o.last = k;
+                o.el.setAttribute('transform', `translate(${o.x.toFixed(1)} ${o.y.toFixed(1)}) scale(${k.toFixed(3)})`);
+            });
+            flowers.forEach(f => {
+                const k = smooth(seg(p, f.th, f.th + 0.07));
+                if (k === f.last) return; f.last = k;
+                f.el.setAttribute('transform', `translate(${f.x.toFixed(1)} ${f.y.toFixed(1)}) rotate(${Math.round(k * 72)}) scale(${k.toFixed(3)})`);
+            });
+            const v = seg(p, 0.02, 0.08) * (1 - seg(p, 0.25, 0.4));
+            const tt = seg(p, trunk.ta, trunk.tb), [tx, ty] = ptAt(trunk, tt), [tdx, tdy] = dirAt(trunk, tt), h = Math.atan2(tdy, tdx);
+            sprouts.forEach((e, i) => e.setAttribute('transform', `translate(${tx.toFixed(1)} ${ty.toFixed(1)}) rotate(${Math.round((h + (i ? 0.9 : -0.9)) * 57.3)}) translate(6 0) scale(${v.toFixed(3)})`));
+            document.getElementById('tree-seed').style.opacity = 1 - seg(p, 0.01, 0.06);
+        }
+
+        let treeTarget = 0, treeShown = 0, treeGo = false, lastCaption = '';
+        const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const forcedP = parseFloat(new URLSearchParams(location.search).get('cay'));
+
+        function updateCaption() {
+            const p = treeTarget;
+            const msg = p >= 1 ? '🌸 Cây đã nở hoa – chúc mừng ngày Nhà giáo Việt Nam!'
+                : p >= 0.84 ? '🌸 Những nụ hoa đầu tiên đang hé nở'
+                : p >= 0.5 ? '🌳 Cây đã xanh tốt, sắp ra hoa rồi'
+                : p >= 0.2 ? '🌿 Cây đang lớn lên từng ngày'
+                : '🌱 Mầm cây vừa nhú, cùng chờ ngày 20/11';
+            const html = `${msg}<span class="block text-xs font-normal opacity-80">Cây tri ân đã lớn ${Math.round(p * 100)}%</span>`;
+            if (html !== lastCaption) { document.getElementById('tree-caption').innerHTML = html; lastCaption = html; }
+        }
+        function setTreeTarget(p) { treeTarget = isNaN(forcedP) ? p : clamp01(forcedP); updateCaption(); }
+
+        function treeLoop() {
+            if (treeGo || reduceMotion) {
+                const diff = treeTarget - treeShown;
+                if (diff !== 0) {
+                    treeShown = Math.abs(diff) < 0.0005 ? treeTarget : treeShown + (reduceMotion ? diff : diff * 0.035);
+                    renderTree(treeShown);
+                }
+            }
+            requestAnimationFrame(treeLoop);
+        }
+        renderTree(0); treeLoop();
+
+        function up() {
+            const now = new Date();
+            const isToday = now.getMonth() === 10 && now.getDate() === 20;
+            let target = new Date(now.getFullYear(), 10, 20);
+            if (!isToday && now > target) target = new Date(now.getFullYear() + 1, 10, 20);
+            const gap = isToday ? 0 : target - now;
+            const passed = !isToday && now > new Date(now.getFullYear(), 10, 20);
+            setTreeTarget(isToday || passed ? 1 : clamp01(1 - gap / (GROW_DAYS * 86400000)));
+            const d = 1000 * 60 * 60 * 24, h = 1000 * 60 * 60, m = 1000 * 60, s = 1000;
+            document.getElementById('days').innerText = Math.max(0, Math.floor(gap / d));
+            document.getElementById('hours').innerText = Math.max(0, Math.floor((gap % d) / h));
+            document.getElementById('minutes').innerText = Math.max(0, Math.floor((gap % h) / m));
+            document.getElementById('seconds').innerText = Math.max(0, Math.floor((gap % m) / s));
+            document.getElementById('count-label').innerText = isToday ? 'Hôm nay là 20/11 - Chúc thầy cô một ngày thật vui! 🌹' : 'Đếm ngược đến ngày Nhà giáo Việt Nam 20/11';
+        }
+        setInterval(up, 1000); up();
+    </script>
+</body>
+</html>
