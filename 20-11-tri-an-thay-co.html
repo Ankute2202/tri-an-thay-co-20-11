@@ -459,6 +459,119 @@
                 </div>`;
         }
 
+        async function loadWishesFromServer() {
+            if (!WISH_API_URL) {
+                console.error('Chưa cấu hình URL Google Apps Script.');
+                return;
+            }
+            const requestId = 'load' + Date.now().toString(36) + Math.random().toString(36).slice(2);
+            const callbackName = 'wishboardCallback_' + requestId;
+            const script = document.createElement('script');
+            let timeout;
+            const finish = (error, wishes) => {
+                window.clearTimeout(timeout);
+                delete window[callbackName];
+                script.remove();
+                if (error) {
+                    console.error('Không tải được lời chúc từ máy chủ:', error);
+                    document.getElementById('board-sub').textContent += ' · Chưa đồng bộ được lời chúc';
+                    return;
+                }
+
+                const serverWishes = wishes.map(w => ({ ...w, serverSaved: true }));
+                const localOnlyWishes = loadWishes().filter(w => !w.serverSaved);
+                const merged = new Map();
+                [...localOnlyWishes, ...serverWishes].forEach(w => {
+                    if (w.id) merged.set(w.id, w);
+                });
+                saveWishes([...merged.values()]);
+                renderBoard();
+            };
+            window[callbackName] = data => {
+                if (!data || data.requestId !== requestId) return;
+                if (!data.ok) {
+                    finish(new Error(data.message || 'Máy chủ không trả lời thành công.'));
+                    return;
+                }
+                if (!Array.isArray(data.wishes)) {
+                    finish(new Error('Dữ liệu lời chúc từ máy chủ không hợp lệ.'));
+                    return;
+                }
+                finish(null, data.wishes);
+            };
+            const params = new URLSearchParams({
+                action: 'loadWishes',
+                callback: callbackName,
+                requestId
+            });
+            script.onerror = () => finish(new Error('Không kết nối được Google Apps Script.'));
+            script.onload = () => {
+                if (window[callbackName]) finish(new Error('Máy chủ không trả về danh sách lời chúc.'));
+            };
+            timeout = window.setTimeout(
+                () => finish(new Error('Hết thời gian chờ máy chủ khi tải lời chúc.')),
+                30000
+            );
+            script.src = WISH_API_URL + (WISH_API_URL.includes('?') ? '&' : '?') + params.toString();
+            document.head.appendChild(script);
+        }
+
+        async function loadWishesFromServer() {
+            if (!WISH_API_URL) {
+                console.error('Chưa cấu hình URL Google Apps Script.');
+                return;
+            }
+            const requestId = 'load' + Date.now().toString(36) + Math.random().toString(36).slice(2);
+            const callbackName = 'wishboardCallback_' + requestId;
+            const script = document.createElement('script');
+            let timeout;
+            const finish = (error, wishes) => {
+                window.clearTimeout(timeout);
+                delete window[callbackName];
+                script.remove();
+                if (error) {
+                    console.error('Không tải được lời chúc từ máy chủ:', error);
+                    return;
+                }
+
+                const serverWishes = wishes.map(w => ({ ...w, serverSaved: true }));
+                const localOnlyWishes = loadWishes().filter(w => !w.serverSaved);
+                const merged = new Map();
+                [...localOnlyWishes, ...serverWishes].forEach(w => {
+                    if (w.id) merged.set(w.id, w);
+                });
+                saveWishes([...merged.values()]);
+                renderBoard();
+            };
+            window[callbackName] = data => {
+                if (!data || data.requestId !== requestId) return;
+                if (!data.ok) {
+                    finish(new Error(data.message || 'Máy chủ không trả lời thành công.'));
+                    return;
+                }
+                if (!Array.isArray(data.wishes)) {
+                    finish(new Error('Dữ liệu lời chúc từ máy chủ không hợp lệ.'));
+                    return;
+                }
+                finish(null, data.wishes);
+            };
+            const params = new URLSearchParams({
+                action: 'loadWishes',
+                callback: callbackName,
+                requestId
+            });
+            script.onerror = () => finish(new Error('Không kết nối được Google Apps Script.'));
+            script.onload = () => {
+                if (window[callbackName]) finish(new Error('Máy chủ không trả về danh sách lời chúc.'));
+            };
+            timeout = window.setTimeout(
+                () => finish(new Error('Hết thời gian chờ máy chủ khi tải lời chúc.')),
+                30000
+            );
+            script.src = WISH_API_URL + (WISH_API_URL.includes('?') ? '&' : '?') + params.toString();
+            document.head.appendChild(script);
+        }
+
         function deleteWish(id) {
             if (!confirm('Xóa lời chúc này?')) return;
             const all = loadWishes();
@@ -469,11 +582,13 @@
             }
             saveWishes(all.filter(x => x.id !== id));
             renderBoard();
+            loadWishesFromServer();
             const idx = w ? recipients.findIndex(r => r.key === rKey(w.to, w.subject)) : -1;
             if (idx >= 0) openModal(idx); else closeModal();
         }
 
         renderBoard();
+        loadWishesFromServer();
 
         // HOA & SÁCH VỞ RƠI (ít, vẽ bằng sprite, tính theo thời gian nên mượt) + COUNTDOWN
         const blossomCanvas = document.getElementById('blossom-container'), bCtx = blossomCanvas.getContext('2d');

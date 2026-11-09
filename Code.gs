@@ -13,15 +13,50 @@ function doGet(e) {
     return ContentService.createTextOutput('Invalid callback.')
       .setMimeType(ContentService.MimeType.TEXT);
   }
-  const result = saveWish_(params, requestId);
-  const payload = JSON.stringify({
+  const result = params.action === 'loadWishes'
+    ? readWishes_()
+    : saveWish_(params, requestId);
+  const payload = {
     type: 'wishboard-result',
     requestId: requestId,
     ok: result.ok,
     message: result.message
-  });
-  return ContentService.createTextOutput(callback + '(' + payload + ');')
+  };
+  if (result.ok && result.wishes) {
+    payload.wishes = result.wishes;
+  }
+  return ContentService.createTextOutput(callback + '(' + JSON.stringify(payload) + ');')
     .setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
+
+function readWishes_() {
+  try {
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    if (!spreadsheet) {
+      return { ok: false, message: 'Không tìm thấy Google Sheet được liên kết với Apps Script.' };
+    }
+
+    const sheet = spreadsheet.getSheetByName('Lời chúc');
+    if (!sheet || sheet.getLastRow() < 2) {
+      return { ok: true, message: '', wishes: [] };
+    }
+
+    const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 6).getValues();
+    const wishes = rows
+      .filter(row => row[0] && row[1] && row[4])
+      .map(row => ({
+        id: String(row[0]),
+        to: String(row[1]),
+        subject: String(row[2] || ''),
+        from: String(row[3] || ''),
+        text: String(row[4]),
+        t: row[5] instanceof Date ? row[5].getTime() : 0
+      }));
+    return { ok: true, message: '', wishes: wishes };
+  } catch (error) {
+    console.error(error);
+    return { ok: false, message: 'Không tải được lời chúc từ Google Sheets.' };
+  }
 }
 
 function saveWish_(params, requestId) {
