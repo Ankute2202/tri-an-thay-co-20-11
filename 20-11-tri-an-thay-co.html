@@ -255,7 +255,7 @@
             { name: "Thịnh", subject: "Hóa học", icon: "🧪", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã cho chúng em thấy mỗi phản ứng đều có nguyên nhân, mỗi nỗ lực đều có kết quả." },
             { name: "Oanh", subject: "Sinh học", icon: "🌱", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã dạy chúng em trân trọng sự sống và những điều nhỏ bé quanh mình." },
             { name: "Huyền", subject: "Lịch sử", icon: "🏛️", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã giúp chúng em hiểu quá khứ để biết ơn hiện tại và vững bước tới tương lai." },
-            { name: "Thái", subject: "Tin học", icon: "💻", image: "thay-thai-tin-hoc.jpg", gvcn: false, quote: "Cảm ơn thầy/cô đã dạy chúng em tư duy logic và cách làm chủ công nghệ." },
+            { name: "Thái", subject: "Tin học", icon: "💻", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã dạy chúng em tư duy logic và cách làm chủ công nghệ." },
             { name: "Công", subject: "Giáo dục thể chất (GDTC)", icon: "⚽", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã giúp chúng em khỏe người, khỏe tinh thần sau những giờ học căng thẳng." },
             { name: "Chung", subject: "Quốc phòng - An ninh (QPAN)", icon: "🎖️", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã dạy chúng em tinh thần kỷ luật và lòng yêu Tổ quốc." },
             { name: "Thái", subject: "HĐ trải nghiệm, hướng nghiệp (HĐTN)", icon: "🧭", image: "", gvcn: false, quote: "Cảm ơn thầy/cô đã giúp chúng em hiểu mình hơn và chọn được hướng đi cho tương lai." },
@@ -391,13 +391,15 @@
                         <input id="wish-name" type="text" maxlength="40" placeholder="Tên thầy/cô" class="${fieldCls}">
                         <input id="wish-subject" type="text" maxlength="40" placeholder="Môn dạy / chức vụ (không bắt buộc)" class="${fieldCls}">
                     </div>
-                    <label class="block text-sm font-bold mt-5 mb-1" for="wish-from">Tên của bạn <span class="font-normal opacity-70">(không bắt buộc)</span></label>
-                    <input id="wish-from" type="text" maxlength="40" value="${esc(sender)}" placeholder="Ví dụ: Lan, học sinh cũ khóa 2023" class="${fieldCls}">
-                    <label class="block text-sm font-bold mt-5 mb-1" for="wish-text">Lời chúc</label>
-                    <textarea id="wish-text" rows="5" maxlength="400" placeholder="Viết lời chúc của bạn..." class="${fieldCls}"></textarea>
-                    <p id="wish-err" class="text-sm font-bold text-[#c9477a] mt-2 min-h-[1.25rem]"></p>
-                    <div class="text-center mt-4"><button id="wish-submit" onclick="sendWish()" class="btn-grad text-white px-10 py-3 rounded-full font-bold shadow-lg active:scale-95 transition">💌 Gửi lời chúc</button></div>
-                </div>`;
+                    <div id="my-form">
+                        <label class="block text-sm font-bold mt-5 mb-1" for="wish-from">Tên của bạn <span class="font-normal opacity-70">(không bắt buộc)</span></label>
+                        <input id="wish-from" type="text" maxlength="40" value="${esc(sender)}" placeholder="Ví dụ: Lan, học sinh cũ khóa 2023" class="${fieldCls}">
+                        <label class="block text-sm font-bold mt-5 mb-1" for="wish-text">Lời chúc</label>
+                        <textarea id="wish-text" rows="5" maxlength="400" placeholder="Viết lời chúc của bạn..." class="${fieldCls}"></textarea>
+                        <p id="wish-err" class="text-sm font-bold text-[#c9477a] mt-2 min-h-[1.25rem]"></p>
+                        <div class="text-center mt-4"><button id="wish-submit" onclick="sendWish()" class="btn-grad text-white px-10 py-3 rounded-full font-bold shadow-lg active:scale-95 transition">💌 Gửi lời chúc</button></div>
+                    </div>`;
+            </div>;
             document.getElementById('modal').style.display = 'flex';
         }
 
@@ -736,6 +738,33 @@
             document.getElementById('count-label').innerText = isToday ? 'Hôm nay là 20/11 - Chúc thầy cô một ngày thật vui! 🌹' : 'Đếm ngược đến ngày Nhà giáo Việt Nam 20/11';
         }
         setInterval(up, 1000); up();
+    </script>
+     <script>
+        document.getElementById('my-form').addEventListener('wish-submit', async function(e) {
+            e.preventDefault(); // Chặn việc load lại trang mặc định
+            
+            const formData = new FormData(this);
+            const endpoint = "https://app.forminit.com/forms/y9j5iaqm5v7";
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                });
+
+                if (response.ok) {
+                    alert("Dữ liệu của bạn đã được gửi lên hệ thống!");
+                    this.reset(); // Xóa sạch chữ trong ô nhập sau khi gửi thành công
+                } else {
+                    alert("Có lỗi xảy ra, vui lòng thử lại.");
+                }
+            } catch (error) {
+                console.error("Lỗi kết nối:", error);
+            }
+        });
     </script>
 </body>
 </html>
